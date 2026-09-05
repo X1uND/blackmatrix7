@@ -1,0 +1,41 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # 每小时整点自动同步
+    - cron: "0 * * * *"
+
+  # 支持手动运行
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync master
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== Sync master ==="
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "/repos/${GITHUB_REPOSITORY}/merge-upstream" \
+            -F branch="master"
+
+      - name: Sync release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "=== Sync release ==="
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "/repos/${GITHUB_REPOSITORY}/merge-upstream" \
+            -F branch="release"
