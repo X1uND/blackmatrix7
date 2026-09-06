@@ -19,13 +19,13 @@ jobs:
       # ==========================================================
       # Checkout 当前 Fork
       #
-      # 40 天 heartbeat 需要使用 git fetch / checkout / commit / push，
-      # 因此必须先 checkout 仓库。
+      # 40 天 heartbeat 需要使用本地 Git，
+      # 这里只获取最新提交，避免拉取完整历史。
       # ==========================================================
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       # ==========================================================
       # 同步 master
@@ -62,10 +62,13 @@ jobs:
       # ==========================================================
       # 40 天维护仓库活动
       #
+      # 注意：
+      # 这个仓库的默认/主分支是 master，不是 main。
+      #
       # heartbeat 文件：
       # .github/sync-heartbeat
       #
-      # 每 40 天更新一次。
+      # 每 40 天更新一次，并提交到 master。
       # ==========================================================
       - name: Keep repository active
         shell: bash
@@ -76,10 +79,10 @@ jobs:
 
           HEARTBEAT_FILE=".github/sync-heartbeat"
 
-          # 获取最新的 main
-          git fetch origin main
+          # 获取最新的 master
+          git fetch origin master
 
-          git checkout -B main origin/main
+          git checkout -B master origin/master
 
           mkdir -p .github
 
@@ -128,7 +131,7 @@ jobs:
             git commit \
               -m "chore: keep repository active"
 
-            git push origin main
+            git push origin master
 
             echo "=== Heartbeat commit completed ==="
 
@@ -151,12 +154,12 @@ jobs:
           echo "${GITHUB_REPOSITORY}"
 
           echo ""
-          echo "Current commit:"
-          git rev-parse HEAD
+          echo "Current branch:"
+          git branch --show-current
 
           echo ""
-          echo "Branches:"
-          git branch -a
+          echo "Current commit:"
+          git rev-parse HEAD
 
           echo ""
           echo "=== Sync completed successfully ==="
